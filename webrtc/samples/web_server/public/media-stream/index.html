@@ -7,7 +7,6 @@
     <title>media-stream</title>
   </head>
   <body>
-    <h1 id="jsTest"></h1>
     <div>
       <label for="audioInput">audioInput：</label>
       <select name="audioInput" id="audioInput"></select>
@@ -20,15 +19,28 @@
       <label for="videoInput">videoInput：</label>
       <select name="videoInput" id="videoInput"></select>
     </div>
-    <video id="jsPlayer" autoplay playsinline></video>
-  </body>
+    <video id="jsVideoPlayer" autoplay playsinline></video>
+
+    <div>
+      <button id="snapShot">snaoShot</button>
+    </div>
+    <div>
+      <canvas id="jsCanvas"></canvas>
+    </div>
+
+ </body>
   <script src="http://webrtc.github.io/adapter/adapter-latest.js"></script>
   <script>
     window.onload = function () {
-      let jsTest = document.querySelector("#jsTest");
       let audioInput = document.querySelector("#audioInput");
       let audioOutput = document.querySelector("#audioOutput");
       let videoInput = document.querySelector("#videoInput");
+
+      let jsVideoPlayer = document.querySelector("#jsVideoPlayer");
+      let snapShot = document.querySelector("#snapShot");
+      let jsCanvas = document.querySelector("#jsCanvas");
+      jsCanvas.width = 480;
+      jsCanvas.height = 320;
 
       function gotDevices(deviceInfos) {
         deviceInfos.forEach((deviceInfo) => {
@@ -47,10 +59,7 @@
       }
 
       function getUserMedia(obj) {
-        const index = videoInput.selectedIndex;
-        const value = index >= 0 ? videoInput.options[index].value : 'default';
-
-        jsTest.innerHTML = value;
+        const deviceId = videoInput.value;
 
         // 老的浏览器可能根本没有实现 mediaDevices，所以我们可以先设置一个空的对象
         if (navigator.mediaDevices === undefined) {
@@ -88,14 +97,14 @@
             audio: false,
             video: {
               width: 480,
-              height: 360,
+              height: 320,
               frameRate: 15,
-              deviceId: value
+              deviceId: deviceId
             }
           })
           .then(function (stream) {
             console.log("getUserMedia-then", stream);
-            var video = document.querySelector("#jsPlayer");
+            var video = document.querySelector("#jsVideoPlayer");
             // 旧的浏览器可能没有 srcObject
             if ("srcObject" in video) {
               video.srcObject = stream;
@@ -118,6 +127,10 @@
 
       videoInput.onchange = getUserMedia; 
        
+      snapShot.onclick = function () {
+        jsCanvas.getContext('2d').drawImage(jsVideoPlayer, 0, 0, jsCanvas.width, jsCanvas.height);
+      }
+
     };
   </script>
 </html>
