@@ -7,6 +7,7 @@
     <title>media-stream</title>
   </head>
   <body>
+    <h1 id="jsTest"></h1>
     <div>
       <label for="audioInput">audioInput：</label>
       <select name="audioInput" id="audioInput"></select>
@@ -24,76 +25,99 @@
   <script src="http://webrtc.github.io/adapter/adapter-latest.js"></script>
   <script>
     window.onload = function () {
-      // 老的浏览器可能根本没有实现 mediaDevices，所以我们可以先设置一个空的对象
-      if (navigator.mediaDevices === undefined) {
-        navigator.mediaDevices = {};
-      }
-
-      // 一些浏览器部分支持 mediaDevices。我们不能直接给对象设置 getUserMedia
-      // 因为这样可能会覆盖已有的属性。这里我们只会在没有 getUserMedia 属性的时候添加它。
-      if (navigator.mediaDevices.getUserMedia === undefined) {
-        navigator.mediaDevices.getUserMedia = function (constraints) {
-          // 首先，如果有 getUserMedia 的话，就获得它
-          var getUserMedia =
-            navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-
-          // 一些浏览器根本没实现它 - 那么就返回一个 error 到 promise 的 reject 来保持一个统一的接口
-          if (!getUserMedia) {
-            return Promise.reject(
-              new Error("getUserMedia is not implemented in this browser")
-            );
-          }
-
-          // 否则，为老的 navigator.getUserMedia 方法包裹一个 Promise
-          return new Promise(function (resolve, reject) {
-            getUserMedia.call(navigator, constraints, resolve, reject);
-          });
-        };
-      }
-
-
-      let audioInput = document.querySelector('#audioInput');
-      let audioOutput = document.querySelector('#audioOutput');
-      let videoInput = document.querySelector('#videoInput');
-
+      let jsTest = document.querySelector("#jsTest");
+      let audioInput = document.querySelector("#audioInput");
+      let audioOutput = document.querySelector("#audioOutput");
+      let videoInput = document.querySelector("#videoInput");
 
       function gotDevices(deviceInfos) {
-        deviceInfos.forEach(deviceInfo => {
-          const option = document.createElement('option');
+        deviceInfos.forEach((deviceInfo) => {
+          const option = document.createElement("option");
           option.text = deviceInfo.label;
           option.value = deviceInfo.deviceId;
 
-          if (deviceInfo.kind === 'audioinput') {
+          if (deviceInfo.kind === "audioinput") {
             audioInput.appendChild(option);
-          } else if (deviceInfo.kind === 'audiooutput') {
-            audioOutput.appendChild(option); 
-          } else if (deviceInfo.kind === 'videoinput') {
-            videoInput.appendChild(option); 
+          } else if (deviceInfo.kind === "audiooutput") {
+            audioOutput.appendChild(option);
+          } else if (deviceInfo.kind === "videoinput") {
+            videoInput.appendChild(option);
           }
-        })  
+        });
       }
 
-      navigator.mediaDevices
-        .getUserMedia({ audio: false, video: true })
-        .then(function (stream) {
-          console.log('getUserMedia-then', stream)
-          var video = document.querySelector("#jsPlayer");
-          // 旧的浏览器可能没有 srcObject
-          if ("srcObject" in video) {
-            video.srcObject = stream;
-          } else {
-            // 防止在新的浏览器里使用它，应为它已经不再支持了
-            video.src = window.URL.createObjectURL(stream);
-          }
-          video.onloadedmetadata = function (e) {
-            video.play();
+      function getUserMedia(obj) {
+        const index = videoInput.selectedIndex;
+        const value = index >= 0 ? videoInput.options[index].value : 'default';
+
+        jsTest.innerHTML = value;
+
+        // 老的浏览器可能根本没有实现 mediaDevices，所以我们可以先设置一个空的对象
+        if (navigator.mediaDevices === undefined) {
+          navigator.mediaDevices = {};
+        }
+
+        // 一些浏览器部分支持mediaDevices。我们不能直接给对象设置 getUserMedia
+        // 因为这样可能会覆盖已有的属性。这里我们只会在没有 getUserMedia 属性的时候添加它。
+        if (navigator.mediaDevices.getUserMedia === undefined) {
+          navigator.mediaDevices.getUserMedia = function (constraints) {
+            // 首先，如果有 getUserMedia 的话，就获得它
+            var getUserMedia =
+              navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+            // 一些浏览器根本没实现它 - 那么就返回一个 error 到 promise 的 reject 来保持一个统一的接口
+            if (!getUserMedia) {
+              return Promise.reject(
+                new Error("getUserMedia is not implemented in this browser")
+              );
+            }
+
+            // 否则，为老的 navigator.getUserMedia 方法包裹一个 Promise
+            return new Promise(function (resolve, reject) {
+              getUserMedia.call(navigator, constraints, resolve, reject);
+            });
           };
-          return navigator.mediaDevices.enumerateDevices();
-        })
-        .then(gotDevices)
-        .catch(function (err) {
-          console.log(err.name + ": " + err.message);
-        });
+        }
+        // {
+        //     echoCancellation: true,
+        //     autoGainControl: true,
+        //     noiseSuppression: true
+        //   }
+        navigator.mediaDevices
+          .getUserMedia({
+            audio: false,
+            video: {
+              width: 480,
+              height: 360,
+              frameRate: 15,
+              deviceId: value
+            }
+          })
+          .then(function (stream) {
+            console.log("getUserMedia-then", stream);
+            var video = document.querySelector("#jsPlayer");
+            // 旧的浏览器可能没有 srcObject
+            if ("srcObject" in video) {
+              video.srcObject = stream;
+            } else {
+              // 防止在新的浏览器里使用它，应为它已经不再支持了
+              video.src = window.URL.createObjectURL(stream);
+            }
+            video.onloadedmetadata = function (e) {
+              video.play();
+            };
+            return navigator.mediaDevices.enumerateDevices();
+          })
+          .then(gotDevices)
+          .catch(function (err) {
+            console.log(err.name + ": " + err.message);
+          });
+      }
+
+      getUserMedia();
+
+      videoInput.onchange = getUserMedia; 
+       
     };
   </script>
 </html>
