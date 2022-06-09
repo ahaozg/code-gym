@@ -7,6 +7,18 @@
     <title>media-stream</title>
   </head>
   <body>
+    <div>
+      <label for="audioInput">audioInput：</label>
+      <select name="audioInput" id="audioInput"></select>
+    </div>
+    <div>
+      <label for="audioOutput">audioOuput：</label>
+      <select name="audioOutput" id="audioOutput"></select>
+    </div>
+    <div>
+      <label for="videoInput">videoInput：</label>
+      <select name="videoInput" id="videoInput"></select>
+    </div>
     <video id="jsPlayer" autoplay playsinline></video>
   </body>
   <script src="http://webrtc.github.io/adapter/adapter-latest.js"></script>
@@ -39,8 +51,30 @@
         };
       }
 
+
+      let audioInput = document.querySelector('#audioInput');
+      let audioOutput = document.querySelector('#audioOutput');
+      let videoInput = document.querySelector('#videoInput');
+
+
+      function gotDevices(deviceInfos) {
+        deviceInfos.forEach(deviceInfo => {
+          const option = document.createElement('option');
+          option.text = deviceInfo.label;
+          option.value = deviceInfo.deviceId;
+
+          if (deviceInfo.kind === 'audioinput') {
+            audioInput.appendChild(option);
+          } else if (deviceInfo.kind === 'audiooutput') {
+            audioOutput.appendChild(option); 
+          } else if (deviceInfo.kind === 'videoinput') {
+            videoInput.appendChild(option); 
+          }
+        })  
+      }
+
       navigator.mediaDevices
-        .getUserMedia({ audio: true, video: true })
+        .getUserMedia({ audio: false, video: true })
         .then(function (stream) {
           console.log('getUserMedia-then', stream)
           var video = document.querySelector("#jsPlayer");
@@ -54,7 +88,9 @@
           video.onloadedmetadata = function (e) {
             video.play();
           };
+          return navigator.mediaDevices.enumerateDevices();
         })
+        .then(gotDevices)
         .catch(function (err) {
           console.log(err.name + ": " + err.message);
         });
