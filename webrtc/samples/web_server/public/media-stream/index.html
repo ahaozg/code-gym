@@ -20,6 +20,7 @@
       <select name="videoInput" id="videoInput"></select>
     </div>
     <video id="jsVideoPlayer" autoplay playsinline></video>
+    <audio id="jsAudioPlayer" autoplay controls ></audio>
 
     <div>
       <button id="snapShot">snaoShot</button>
@@ -28,7 +29,7 @@
       <canvas id="jsCanvas"></canvas>
     </div>
 
- </body>
+  </body>
   <script src="http://webrtc.github.io/adapter/adapter-latest.js"></script>
   <script>
     window.onload = function () {
@@ -37,6 +38,7 @@
       let videoInput = document.querySelector("#videoInput");
 
       let jsVideoPlayer = document.querySelector("#jsVideoPlayer");
+      let jsAudioPlayer = document.querySelector("#jsAudioPlayer");
       let snapShot = document.querySelector("#snapShot");
       let jsCanvas = document.querySelector("#jsCanvas");
       jsCanvas.width = 480;
@@ -94,13 +96,13 @@
         //   }
         navigator.mediaDevices
           .getUserMedia({
-            audio: false,
-            video: {
-              width: 480,
-              height: 320,
-              frameRate: 15,
-              deviceId: deviceId
-            }
+            audio: true,
+            // video: {
+            //   width: 480,
+            //   height: 320,
+            //   frameRate: 15,
+            //   deviceId: deviceId
+            // }
           })
           .then(function (stream) {
             console.log("getUserMedia-then", stream);
