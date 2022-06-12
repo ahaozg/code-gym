@@ -5,6 +5,19 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>media-stream</title>
+    <style>
+      .output {
+        background-color: #eee;
+        display: inline-block;
+        font-family: "Inconsolata", "Courier New", monospace;
+        font-size: 0.9em;
+        padding: 10px 10px 10px 25px;
+        position: relative;
+        top: 10px;
+        white-space: pre;
+        width: 270px;
+      }
+    </style>
   </head>
   <body>
     <div>
@@ -19,8 +32,19 @@
       <label for="videoInput">videoInput：</label>
       <select name="videoInput" id="videoInput"></select>
     </div>
-    <video id="jsVideoPlayer" autoplay playsinline></video>
-    <audio id="jsAudioPlayer" autoplay controls ></audio>
+    <!-- <video id="jsVideoPlayer" autoplay playsinline></video> -->
+    <audio id="jsAudioPlayer" autoplay controls></audio>
+
+    <table>
+      <tr>
+        <td>
+          <video id="jsVideoPlayer" autoplay playsinline></video>
+        </td>
+        <td>
+          <div id="jsVideoSettings" class="output"></div>
+        </td>
+      </tr>
+    </table>
 
     <div>
       <button id="snapShot">snaoShot</button>
@@ -28,7 +52,6 @@
     <div>
       <canvas id="jsCanvas"></canvas>
     </div>
-
   </body>
   <script src="http://webrtc.github.io/adapter/adapter-latest.js"></script>
   <script>
@@ -43,6 +66,8 @@
       let jsCanvas = document.querySelector("#jsCanvas");
       jsCanvas.width = 480;
       jsCanvas.height = 320;
+
+      let jsVideoSettings = document.querySelector("#jsVideoSettings");
 
       function gotDevices(deviceInfos) {
         deviceInfos.forEach((deviceInfo) => {
@@ -96,13 +121,13 @@
         //   }
         navigator.mediaDevices
           .getUserMedia({
-            audio: true,
-            // video: {
-            //   width: 480,
-            //   height: 320,
-            //   frameRate: 15,
-            //   deviceId: deviceId
-            // }
+            audio: false,
+            video: {
+              width: 480,
+              height: 320,
+              frameRate: 15,
+              deviceId: deviceId,
+            },
           })
           .then(function (stream) {
             console.log("getUserMedia-then", stream);
@@ -110,6 +135,19 @@
             // 旧的浏览器可能没有 srcObject
             if ("srcObject" in video) {
               video.srcObject = stream;
+
+              const videoTracks = stream.getVideoTracks();
+              const firstVideoTrack = videoTracks.length
+                ? videoTracks[0]
+                : null;
+              const textContent = firstVideoTrack
+                ? firstVideoTrack.getSettings()
+                : "";
+              jsVideoSettings.textContent = JSON.stringify(
+                textContent,
+                null,
+                2
+              );
             } else {
               // 防止在新的浏览器里使用它，应为它已经不再支持了
               video.src = window.URL.createObjectURL(stream);
@@ -127,12 +165,13 @@
 
       getUserMedia();
 
-      videoInput.onchange = getUserMedia; 
-       
-      snapShot.onclick = function () {
-        jsCanvas.getContext('2d').drawImage(jsVideoPlayer, 0, 0, jsCanvas.width, jsCanvas.height);
-      }
+      videoInput.onchange = getUserMedia;
 
+      snapShot.onclick = function () {
+        jsCanvas
+          .getContext("2d")
+          .drawImage(jsVideoPlayer, 0, 0, jsCanvas.width, jsCanvas.height);
+      };
     };
   </script>
 </html>
