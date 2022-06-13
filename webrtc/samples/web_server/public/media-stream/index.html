@@ -32,7 +32,7 @@
       <label for="videoInput">videoInput：</label>
       <select name="videoInput" id="videoInput"></select>
     </div>
-    <!-- <video id="jsVideoPlayer" autoplay playsinline></video> -->
+
     <audio id="jsAudioPlayer" autoplay controls></audio>
 
     <table>
@@ -41,7 +41,21 @@
           <video id="jsVideoPlayer" autoplay playsinline></video>
         </td>
         <td>
+          <video id="jsRecordVideoPlayer" controls muted playsinline></video>
+        </td>
+        <td>
           <div id="jsVideoSettings" class="output"></div>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <button id="jsBtnRecord">start record</button>
+        </td>
+        <td>
+          <button id="jsBtnRecordPlayer" disabled>录制视频的播放</button>
+        </td>
+        <td>
+          <button id="jsBtnDownload" disabled>下载</button>
         </td>
       </tr>
     </table>
@@ -56,18 +70,26 @@
   <script src="http://webrtc.github.io/adapter/adapter-latest.js"></script>
   <script>
     window.onload = function () {
-      let audioInput = document.querySelector("#audioInput");
-      let audioOutput = document.querySelector("#audioOutput");
-      let videoInput = document.querySelector("#videoInput");
+      const audioInput = document.querySelector("#audioInput");
+      const audioOutput = document.querySelector("#audioOutput");
+      const videoInput = document.querySelector("#videoInput");
 
-      let jsVideoPlayer = document.querySelector("#jsVideoPlayer");
-      let jsAudioPlayer = document.querySelector("#jsAudioPlayer");
-      let snapShot = document.querySelector("#snapShot");
-      let jsCanvas = document.querySelector("#jsCanvas");
+      const jsVideoPlayer = document.querySelector("#jsVideoPlayer");
+      const jsAudioPlayer = document.querySelector("#jsAudioPlayer");
+      const snapShot = document.querySelector("#snapShot");
+      const jsCanvas = document.querySelector("#jsCanvas");
       jsCanvas.width = 480;
       jsCanvas.height = 320;
 
-      let jsVideoSettings = document.querySelector("#jsVideoSettings");
+      const jsVideoSettings = document.querySelector("#jsVideoSettings");
+
+      const jsRecordVideoPlayer = document.querySelector("#jsRecordVideoPlayer");
+      const jsBtnRecord = document.querySelector("#jsBtnRecord");
+      const jsBtnRecordPlayer = document.querySelector("#jsBtnRecordPlayer");
+      const jsBtnDownload = document.querySelector("#jsBtnDownload");
+
+      let buffer = [];
+      let mediaRecorder = null;
 
       function gotDevices(deviceInfos) {
         deviceInfos.forEach((deviceInfo) => {
@@ -134,6 +156,7 @@
             var video = document.querySelector("#jsVideoPlayer");
             // 旧的浏览器可能没有 srcObject
             if ("srcObject" in video) {
+              window.stream = stream;
               video.srcObject = stream;
 
               const videoTracks = stream.getVideoTracks();
@@ -172,6 +195,61 @@
           .getContext("2d")
           .drawImage(jsVideoPlayer, 0, 0, jsCanvas.width, jsCanvas.height);
       };
+
+      function handleDataAvailable(e) {
+        if (e && e.data && e.data.size > 0) {
+          buffer.push(e.data);
+        }
+      }
+
+      function startRecord() {
+        buffer = [];
+        const options = {
+          mimeType: 'video/webm;codecs=vp8'
+        };
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          console.error(`当前浏览器不支持${options.mimeType}!!`);
+          return;
+        }
+        mediaRecorder = new MediaRecorder(window.stream, options);
+        mediaRecorder.ondataavailable = handleDataAvailable;
+        mediaRecorder.start(10);
+      }
+
+      function stopRecord() {
+        mediaRecorder.stop();
+      }
+
+      jsBtnRecord.onclick = () => {
+        if (jsBtnRecord.textContent === "start record") {
+          jsBtnRecord.textContent = "stop record";
+          jsBtnRecordPlayer.disabled = true;
+          jsBtnDownload.disabled = true;
+          startRecord();
+        } else {
+          jsBtnRecord.textContent = "start record";
+          jsBtnRecordPlayer.disabled = false;
+          jsBtnDownload.disabled = false;
+          stopRecord();
+        }
+      };
+
+      jsBtnRecordPlayer.onclick = () => {
+        const blob = new Blob(buffer, {type: 'video/webm'});
+        jsRecordVideoPlayer.src = window.URL.createObjectURL(blob);
+        console.log(jsRecordVideoPlayer.src, jsRecordVideoPlayer.networkState)
+        jsRecordVideoPlayer.srcObject = null;
+        jsRecordVideoPlayer.play();
+      }
+
+      jsBtnDownload.onclick = () => {
+        const blob = new Blob(buffer, {type: 'video/webm'});
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'hahaha.webm';
+        a.click();
+      }
     };
   </script>
 </html>
