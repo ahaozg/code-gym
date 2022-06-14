@@ -2,7 +2,7 @@
  * @Author: haozg-666 106981170+haozg-666@users.noreply.github.com
  * @Date: 2022-06-08 21:20:57
  * @LastEditors: haozg-666 106981170+haozg-666@users.noreply.github.com
- * @LastEditTime: 2022-06-14 21:27:37
+ * @LastEditTime: 2022-06-14 22:55:53
  * @FilePath: /code-gym/webrtc/samples/web_server/server.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -58,8 +58,8 @@ var io = socketIO(https_server);
 io.sockets.on("connection", (socket) => {
   socket.on("join", (roomID) => {
     socket.join(roomID);
-    var myRoom = io.sockets.adapter.room[roomID];
-    var userLength = Object.keys(socketIO.sockets).length;
+    var myRoom = io.sockets.adapter.rooms.get(roomID);
+    var userLength = myRoom.size;
     logger.log(`此时roomID:${roomID}的房间内有${userLength}人`);
     socket.emit("joined", roomID, socket.id);
     // 房间内除自己之外的人
@@ -69,9 +69,10 @@ io.sockets.on("connection", (socket) => {
     // 除自己所有人
     // socket.broadcast.emit("joined", roomID, socket.id);
   });
+
   socket.on("leave", (roomID) => {
-    var myRoom = io.sockets.adapter.room[roomID];
-    var userLength = Object.keys(socketIO.sockets).length - 1;
+    var myRoom = io.sockets.adapter.rooms.get(roomID);
+    var userLength = myRoom.size - 1;
     logger.log(`此时roomID:${roomID}的房间内有${userLength}人`);
     socket.emit("leaved", roomID, socket.id);
     // 房间内除自己之外的人
@@ -81,6 +82,11 @@ io.sockets.on("connection", (socket) => {
     // 除自己所有人
     // socket.broadcast.emit("leaved", roomID, socket.id);
     socket.leave(roomID);
+  });
+
+  socket.on("message", (roomID, data) => {
+    // 房间内所有人
+    io.in(roomID).emit("message", roomID, socket.id, data);
   });
 });
 

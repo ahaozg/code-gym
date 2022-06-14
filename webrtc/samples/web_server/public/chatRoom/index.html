@@ -1,0 +1,149 @@
+<!--
+ * @Author: haozg-666 106981170+haozg-666@users.noreply.github.com
+ * @Date: 2022-06-14 21:31:30
+ * @LastEditors: haozg-666 106981170+haozg-666@users.noreply.github.com
+ * @LastEditTime: 2022-06-14 23:00:26
+ * @FilePath: /code-gym/webrtc/samples/web_server/public/chatRoom/index.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>chatRoom</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      button {
+        vertical-align: top;
+        width: 134px;
+      }
+      table {
+        margin-left: 50px;
+        margin-top: 50px;
+      }
+      td {
+        padding-bottom: 20px;
+      }
+      label {
+        display: inline-block;
+        width: 100px;
+        vertical-align: top;
+      }
+    </style>
+  </head>
+  <body>
+    <table>
+      <tr>
+        <td>
+          <label for="">username:</label>
+          <input type="text" id="jsUserName" />
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="">room:</label>
+          <input type="text" id="jsRoom" />
+          <button id="jsConnect">connect</button>
+          <button id="jsLeave" disabled>leave</button>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="">content:</label>
+          <textarea disabled id="jsOutput" cols="100" rows="10"></textarea>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="">input:</label>
+          <textarea disabled id="jsInput" cols="100" rows="3"></textarea>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for=""></label>
+          <button id="jsSend" disabled>Send</button>
+        </td>
+      </tr>
+    </table>
+  </body>
+  <script src="https://cdn.socket.io/4.4.0/socket.io.min.js"></script>
+  <script>
+    window.onload = function () {
+      const jsUserName = document.querySelector("#jsUserName");
+      const jsRoom = document.querySelector("#jsRoom");
+      const jsConnect = document.querySelector("#jsConnect");
+      const jsLeave = document.querySelector("#jsLeave");
+      const jsOutput = document.querySelector("#jsOutput");
+      const jsInput = document.querySelector("#jsInput");
+      const jsSend = document.querySelector("#jsSend");
+
+      let socket = null;
+
+      jsConnect.onclick = () => {
+        socket = io.connect();
+
+        socket.on("joined", (roomID, id) => {
+          console.log("joined", roomID, id);
+          jsConnect.disabled = true;
+          jsLeave.disabled = false;
+          jsInput.disabled = false;
+          jsSend.disabled = false;
+        });
+        socket.on("leaved", (roomID, id) => {
+          console.log("leaved", roomID, id);
+          jsConnect.disabled = false;
+          jsLeave.disabled = true;
+          jsInput.disabled = true;
+          jsSend.disabled = true;
+
+          socket.disconnect();
+        });
+
+        socket.on("disconnect", (socket) => {
+          jsConnect.disabled = false;
+          jsLeave.disabled = true;
+          jsInput.disabled = true;
+          jsSend.disabled = true;
+        });
+
+        socket.on("message", (roomID, id, data) => {
+          console.log("message", roomID, id, data);
+          jsOutput.scrollTop = jsOutput.scrollHeight;
+          jsOutput.value = jsOutput.value + data + "\r";
+        });
+
+        const roomID = jsRoom.value;
+        socket.emit("join", roomID);
+      };
+
+      jsLeave.onclick = () => {
+        const roomID = jsRoom.value;
+        socket.emit("leave", roomID);
+      };
+
+      jsSend.onclick = () => {
+        const content = jsInput.value;
+        const data = jsUserName.value + "：" + content;
+        socket.emit("message", jsRoom.value, data);
+        jsInput.value = "";
+      };
+
+      jsInput.onkeypress = (event) => {
+        if (event.keyCode == 13) {
+          event.preventDefault();
+          const content = jsInput.value;
+          const data = jsUserName.value + "：" + content;
+          socket.emit("message", jsRoom.value, data);
+          jsInput.value = "";
+        }
+      };
+    };
+  </script>
+</html>
