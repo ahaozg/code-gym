@@ -251,7 +251,48 @@ WEBRTC传输层这块还实现了通过计算去估算你的网络带宽，不�
 + S：socket.emit('action', arg1, arg2);
 + C：socket.on('action', function(arg1, arg2) {});
 
+## webrec传输
 
++ NAT(Network Address Translator)
+  + <img src="/Users/haozg/Library/Application Support/typora-user-images/image-20220619124528952.png" alt="image-20220619124528952" style="zoom:33%;" />
+  
+  + 产生的原因
+    + 由于IPv4的地址不够
+    + 出于网络安全的原因
+  
+  + 种类
+    + 完全锥型NAT(Full Cone NAT)
+      + <img src="/Users/haozg/Library/Application Support/typora-user-images/image-20220619125617268.png" alt="image-20220619125617268" style="zoom:25%;" />
+    + 地址限制锥型NAT(Address Restricted Cone NAT)
+      + <img src="/Users/haozg/Library/Application Support/typora-user-images/image-20220619125758789.png" alt="image-20220619125758789" style="zoom:25%;" />
+    + 端口限制锥型NAT(Poer]]rt Restricted Cone NAT)
+      + <img src="/Users/haozg/Library/Application Support/typora-user-images/image-20220619125928635.png" alt="image-20220619125928635" style="zoom:25%;" />
+    + 对称型NAT(Symmetric NAT)
+      + <img src="/Users/haozg/Library/Application Support/typora-user-images/image-20220619125959733.png" alt="image-20220619125959733" style="zoom:25%;" />
+  
+  + NAT穿越原理
+  
+    + C1, C2向STUN发消息
+    + 交换公网IP及端口
+    + C1 -> C2,  C2 -> c1, 甚至是端口猜测
+  
+  + NAT穿越组合
+  
+    + | 全锥型       | 全锥型       | √    |
+      | ------------ | ------------ | ---- |
+      | 全锥型       | 受限锥型     | √    |
+      | 全锥型       | 端口受限锥型 | √    |
+      | 全锥型       | 对称型       | √    |
+      | 受限锥型     | 受限锥型     | √    |
+      | 受限锥型     | 端口受限锥型 | √    |
+      | 受限锥型     | 对称型       | √    |
+      | 端口受限锥型 | 端口受限锥型 | √    |
+      | 端口受限锥型 | 对称型       | ×    |
+      | 对称型       | 对称型       | ×    |
++ STUN(Simple Traversal of UDP Through NAT)
++ TURN(Traversal Using Relays around NAT)
++ ICE(Interactive Connectivity Establishment)
++ 
 
 
 
