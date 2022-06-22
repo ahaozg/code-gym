@@ -251,15 +251,15 @@ WEBRTC传输层这块还实现了通过计算去估算你的网络带宽，不�
 + S：socket.emit('action', arg1, arg2);
 + C：socket.on('action', function(arg1, arg2) {});
 
-## webrec传输
+## Webrtc传输
 
 + NAT(Network Address Translator)
   + <img src="/Users/haozg/Library/Application Support/typora-user-images/image-20220619124528952.png" alt="image-20220619124528952" style="zoom:33%;" />
-  
+
   + 产生的原因
     + 由于IPv4的地址不够
     + 出于网络安全的原因
-  
+
   + 种类
     + 完全锥型NAT(Full Cone NAT)
       + <img src="/Users/haozg/Library/Application Support/typora-user-images/image-20220619125617268.png" alt="image-20220619125617268" style="zoom:25%;" />
@@ -269,15 +269,15 @@ WEBRTC传输层这块还实现了通过计算去估算你的网络带宽，不�
       + <img src="/Users/haozg/Library/Application Support/typora-user-images/image-20220619125928635.png" alt="image-20220619125928635" style="zoom:25%;" />
     + 对称型NAT(Symmetric NAT)
       + <img src="/Users/haozg/Library/Application Support/typora-user-images/image-20220619125959733.png" alt="image-20220619125959733" style="zoom:25%;" />
-  
+
   + NAT穿越原理
-  
+
     + C1, C2向STUN发消息
     + 交换公网IP及端口
     + C1 -> C2,  C2 -> c1, 甚至是端口猜测
-  
+
   + NAT穿越组合
-  
+
     + | 全锥型       | 全锥型       | √    |
       | ------------ | ------------ | ---- |
       | 全锥型       | 受限锥型     | √    |
@@ -289,10 +289,39 @@ WEBRTC传输层这块还实现了通过计算去估算你的网络带宽，不�
       | 端口受限锥型 | 端口受限锥型 | √    |
       | 端口受限锥型 | 对称型       | ×    |
       | 对称型       | 对称型       | ×    |
+
+  + [NAT基本原理及穿透详解(打洞)](https://juejin.cn/post/6844904098572009485)
+
 + STUN(Simple Traversal of UDP Through NAT)
+
+  + 存在的目的就是经NAT穿越
+  + 客户端/服务器模式。客户端发送强求，服务端进行响应
+  + 两种
+    + RFC3489/STUN（Simple Traversal of UDP Through NAT）
+    + RFC5389/SRUN（Session Tracersal Utilities for NAT） 
+
 + TURN(Traversal Using Relays around NAT)
+
+  + 目的是解决对称NAT无法穿越的问题
+  + 建立在STUN之上，消息格式使用STUN格式消息
+  + TURN Client要求服务端分配一个公共IP和port用于接收或者发送数据
+
 + ICE(Interactive Connectivity Establishment)
-+ 
+
+  + Candidate 
+    + 候选者、通路，包括协议、IP、端口、类型
+    + 主机候选者
+    + 反射候选者
+    + 中继候选者 
+
+  + ice做什么
+    + 收集candidate
+    + 对candidate pair排序
+    + 连通性检测
+
+  + SDP（Session Description Protocol）
+    + 它只是一种信息格式的描述标注，本事不属于任何传输协议，但是可以被其他传输协议用来交换必要的信息
+
 
 
 
