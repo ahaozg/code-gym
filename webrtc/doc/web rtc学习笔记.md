@@ -323,5 +323,33 @@ WEBRTC传输层这块还实现了通过计算去估算你的网络带宽，不�
     + 它只是一种信息格式的描述标注，本事不属于任何传输协议，但是可以被其他传输协议用来交换必要的信息
 
 
+## webrtc端到端连接
 
-
++ RTCPeerConnection
+  + myPeerConnection = new PTCPeerConnection([configuration])
+  + 方法分类
+    + 媒体协商
+      + ![image-20220630205829208](/Users/haozg/workSpace/study/notes/code-gym/webrtc/doc/img/image-20220630205829208.png)
+      + ![image-20220630205922721](/Users/haozg/workSpace/study/notes/code-gym/webrtc/doc/img/image-20220630205922721.png)
+      + createOffer
+        + aPromise = myPeerConnection.createOffer([options])
+      + createAnswer
+        + aPromise = myPeerConnection.createAnswer([options])
+      + setLocalDescription
+        + aPromise = myPeerConnection.setLocalDescription(sessionDescription)
+      + setRemoteDescription
+        + aPromise = myPeerConnection.setRemoteDescription(sessionDescription)
+      + AddTrack
+        + RtpSender = myPeerConnection.addTrack(track, stream...)
+      + removeTrack
+        + myPeerConnection.removeTrack(rtpsender)
+      + 事件
+        + Onnegotiationneeded
+          +  进行媒体协商就会触发
+        + Onicecandidate
+          + 收到一个ice候选者就会触发
+    + Stream/track
+    + 传输相关方法
+    + 统计相关方法
+  + 端到端连接基本流程
+    + ![image-20220630214726375](/Users/haozg/workSpace/study/notes/code-gym/webrtc/doc/img/image-20220630214726375.png)
