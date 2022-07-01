@@ -348,6 +348,8 @@ WEBRTC传输层这块还实现了通过计算去估算你的网络带宽，不�
           +  进行媒体协商就会触发
         + Onicecandidate
           + 收到一个ice候选者就会触发
+        + ontrack
+          + 收到track 
     + Stream/track
     + 传输相关方法
     + 统计相关方法
