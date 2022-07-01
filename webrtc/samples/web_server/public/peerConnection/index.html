@@ -43,6 +43,16 @@
         <td><video id="jsLocalVideo" autoplay playsinline></video></td>
         <td><video id="jsRemoteVideo" autoplay playsinline></video></td>
       </tr>
+      <tr>
+        <td>
+          <h1>offer SDP:</h1>
+          <div id="jsOfferSDP"></div>
+        </td>
+        <td>
+          <h1>answer SDP:</h1>
+          <div id="jsAnswerSDP"></div>
+        </td>
+      </tr>  
     </table>
     <script src="http://webrtc.github.io/adapter/adapter-latest.js"></script>
     <script>
@@ -53,6 +63,9 @@
 
         const jsLocalVideo = document.querySelector("#jsLocalVideo");
         const jsRemoteVideo = document.querySelector("#jsRemoteVideo");
+
+        const jsOfferSDP = document.querySelector("#jsOfferSDP");
+        const jsAnswerSDP = document.querySelector("#jsAnswerSDP");
 
         let localStream, pc1, pc2;
 
@@ -134,6 +147,7 @@
 
         function getOffer(desc) {
           pc1.setLocalDescription(desc);
+          jsOfferSDP.innerText = desc.sdp;
 
           // send desc to signals
           // receive desc from signal
@@ -147,7 +161,8 @@
         }
 
         function getAnswer(desc) {
-          pc2.setLocalDescription(desc);          
+          pc2.setLocalDescription(desc);         
+          jsAnswerSDP.innerText = desc.sdp; 
           
           // send desc to signals
           // receive desc from signal
