@@ -355,3 +355,61 @@ WEBRTC传输层这块还实现了通过计算去估算你的网络带宽，不�
     + 统计相关方法
   + 端到端连接基本流程
     + ![image-20220630214726375](/Users/haozg/workSpace/study/notes/code-gym/webrtc/doc/img/image-20220630214726375.png)
+
+## SDP
+
++ SDP规范
+  + 会话层
+    + 会话的名称和目的
+    + 会话的存活时间
+  + 媒体层
+    + 媒体格式
+    + 传输协议
+    + 传输IP和端口
+    + 媒体的负载类型
++ SDP格式
+  + 由多个《type》:《value》组成
+  + 一个会话级描述
+  + 多个媒体级描述
++ SDP结构
+  + Session Description(一个) 全局
+    + v=(protocol version) 版本
+    + o=(owner/create and session identifier) session id 一个标识
+    + s=(session name)  
+    + c=*(conn info - optional if included at session-level) 连接 ip 端口  ipv4/6 网络类型互联网还是其他网络等等
+    + a=*(zero or more session attribute lines) 属性
+  +  Time Description(一个)
+    + t=(time the session is active) 存活时间
+    + r=*(zero or more repeat times) 重复次数
+  + Media Description(多个)
+    + m=(media name and transport address) 媒体名字和传输地址
+    + c=*(conn info - optional if included at session-level) 连接 ip 端口  ipv4/6 网络类型互联网还是其他网络等等
+    + b=*(bandwidth information) 带宽信息
+    + a=*(zero or more session attribute lines) 属性
+  + 详细
+    + Version 必选
+      + v=0 SDP的版本号，不包括此版本号
+    + Session Name 必选
+      + s=(session name) 会话名， s=- 标识忽略会话名
+    + Origion/Owner
+      + o=`<username> <session id> <version> <netword type> <address type> <address>`
+      + o= - 34829034823094 2 IN IP4 127.0.0.1 
+    + Connection Data 可选
+      + c=`<network type> <address type> <connection address>`
+      + c=IN IP4 0.0.0.0
+    + Media Announcements 必选
+      + m=`<media> <port> <transport> <fmt/payload type list>`
+      + m=audio 1024 UDP/TLS/RTP/SAVPF 111 103 104 9 0 8 105 105 13 126
+    + Suggested Attributes 可选
+      + a=`<type>`或者a=`<type>:<values>`
+      + a=framerate: 《帧速率》
+    + a=rtpmap 可选
+      + a=rtpmap:`<fmt/payload type> <encoding name>/<clock rate>[/<encodingparameters>]`
+      + a=rtpmat:103 ISAC/16000
+    +  a=fmtp 可选
+      + a=fmtp:`<format/payload type> parameters`
+      + a=fmtp:103 apt=106
+
+## webrtc中的SDP
+
+![image-20220702234427324](/Users/haozg/workSpace/study/notes/code-gym/webrtc/doc/img/image-20220702234427324.png)
