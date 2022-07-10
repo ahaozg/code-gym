@@ -327,12 +327,41 @@ WEBRTC传输层这块还实现了通过计算去估算你的网络带宽，不�
 
 + RTCPeerConnection
   + myPeerConnection = new PTCPeerConnection([configuration])
+  + configuration 
+    + ![image-20220710174931326](/Users/haozg/workSpace/study/notes/code-gym/webrtc/doc/img/image-20220710174931326.png)
+    + BundlePolicy
+      + Balanced:音频和视频使用各自的传输通道
+      + Max-compat:每个轨使用自己的传输通道
+      + Max-bundle:都绑定到同一个传输通道
+    + Certificates
+      + 授权可以使用连接的一组证书
+    + iceCandidatePoolSize
+      + 16位的整数值，用于指定预期的ICE候选者的个数。如果该值发生变化，它会触发重新收集候选者
+    + iceTransportPolicy
+      + 指定ICE传输策略
+      + relay:只使用中继候选者
+      + all:可以使用任何类型的候选者
+    + iceServers
+      + 其由RTCIceServer组成，每个RTCIceServer都是一个ICE代理的服务
+      + Credential:凭据，只有TURN服务使用
+      + credentialType:凭据类型，可以password或者oauth
+      + Urls:用于连接服务中的url数组
+      + username:用户名，只有TURN服务使用
+    + RtcpMuxPolicy
+      + 该选型在收集ICE候选者时使用
+      + Negotiate:收集RTCP和RTP复用的ICE候选者，如果RTCP能复用就与RTP复用，如果不能复用，就将它们单独使用
+      + require:(默认值)只能收集RTCP和RTP复用的ice候选者，如果RTCP不能复用，则失败
   + 方法分类
     + 媒体协商
       + ![image-20220630205829208](/Users/haozg/workSpace/study/notes/code-gym/webrtc/doc/img/image-20220630205829208.png)
       + ![image-20220630205922721](/Users/haozg/workSpace/study/notes/code-gym/webrtc/doc/img/image-20220630205922721.png)
       + createOffer
         + aPromise = myPeerConnection.createOffer([options])
+        + options
+          + iceRestart:该选项会重启ICE，重新进行Candidate的收集
+          + VoiceActivityDetection:是否开启静音检测，默认开启
+          + 接收远端音频
+          + 接收远端视频
       + createAnswer
         + aPromise = myPeerConnection.createAnswer([options])
       + setLocalDescription
@@ -343,6 +372,13 @@ WEBRTC传输层这块还实现了通过计算去估算你的网络带宽，不�
         + RtpSender = myPeerConnection.addTrack(track, stream...)
       + removeTrack
         + myPeerConnection.removeTrack(rtpsender)
+      + addIceCandidate
+        + aPromise = myPeerConnection.addIceCandidate(candidate)
+        + candidate
+          + Candidate:候选者描述信息
+          + sdpMid:与候选者相关的媒体流的识别标签
+          + sdpMLineIndex:在SDP中m= 的索引值
+          + UsernameFragment:包括了远端的唯一标识
       + 事件
         + Onnegotiationneeded
           +  进行媒体协商就会触发
@@ -413,3 +449,42 @@ WEBRTC传输层这块还实现了通过计算去估算你的网络带宽，不�
 ## webrtc中的SDP
 
 ![image-20220702234427324](/Users/haozg/workSpace/study/notes/code-gym/webrtc/doc/img/image-20220702234427324.png)
+
+## stun/turn服务器搭建
+
++ Rfc5766-turn-server
++ coTurn
+  + 下载 github 下载源码
+  + `./configure --prefix=/usr/local/coturn`
+  + 编译 make && make install
+  + 服务器配置
+    + ![image-20220710174147431](/Users/haozg/workSpace/study/notes/code-gym/webrtc/doc/img/image-20220710174147431.png)
+  + 启动turn服务
+    + `/usr/local/coturn -c ./etc/turnserver.conf`
+  + 测试turn服务
+    + [测试连接](https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/)
++ ResTurn
+
+## 1对1直播系统信令关系
+
++ 客户端信令消息
+  + join 加入房间
+  + leave 离开房间
+  + Message 端对端消息 
+    + offer 消息
+    + answer 消息
+    + candidate 消息
++ 服务端信令消息
+  + joined 已加入房间
+  + otherJoin 其他用户加入房间
+  + full 房间人数已满
+  + leaved 已离开房间
+  + Bye 对方离开房间
++ 消息处理流程图
+  + ![image-20220710181739052](/Users/haozg/workSpace/study/notes/code-gym/webrtc/doc/img/image-20220710181739052.png)
++ 客户端状态机
+  + ![image-20220710214748547](/Users/haozg/workSpace/study/notes/code-gym/webrtc/doc/img/image-20220710214748547.png)
++ 客户端流程图
+  + ![image-20220710215231172](/Users/haozg/workSpace/study/notes/code-gym/webrtc/doc/img/image-20220710215231172.png)
+  + ![image-20220710215416617](/Users/haozg/workSpace/study/notes/code-gym/webrtc/doc/img/image-20220710215416617.png)
+
