@@ -360,8 +360,8 @@ WEBRTC传输层这块还实现了通过计算去估算你的网络带宽，不�
         + options
           + iceRestart:该选项会重启ICE，重新进行Candidate的收集
           + VoiceActivityDetection:是否开启静音检测，默认开启
-          + 接收远端音频
-          + 接收远端视频
+          + offerToReceiveAudio:1 接收远端音频
+          + offerToReceiveVideo: 1接收远端视频
       + createAnswer
         + aPromise = myPeerConnection.createAnswer([options])
       + setLocalDescription
@@ -465,7 +465,7 @@ WEBRTC传输层这块还实现了通过计算去估算你的网络带宽，不�
     + [测试连接](https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/)
 + ResTurn
 
-## 1对1直播系统信令关系
+## 1对1直播系统
 
 + 客户端信令消息
   + join 加入房间
