@@ -53,7 +53,7 @@
         const jsLocalVideo = document.querySelector("#jsLocalVideo");
         const jsRemoteVideo = document.querySelector("#jsRemoteVideo");
 
-        let localStream, socket;
+        let localStream, socket, pc;
 
         const roomId = "123456";
 
@@ -113,25 +113,47 @@
           socket = io.connect();
 
           socket.on("joined", (roomID, userID) => {
+            console.log("receive joined message:", roomID, userID);
+            state = 'joined';
+            createPeerConnection();
             jsConnectServer.disabled = true;
             jsLeave.disabled = false;
-            console.log("receive joined message:", roomID, userID);
+            console.log("receive joined message:state=", state);
           });
 
           socket.on("otherJoin", (roomID, userID) => {
             console.log("receive otherJoin message:", roomID, userID);
+            if (state === 'joined_unbind') {
+              createPeerConnection();
+            }
+            state = 'joined_conn';
+            console.log("receive otherJoin message:state=", state);
           });
 
           socket.on("full", (roomID, userID) => {
             console.log("receive full message:", roomID, userID);
+            state = 'leaved';
+            jsConnectServer.disabled = false;
+            jsLeave.disabled = true;
+            socket.disconnect();
+            console.log("receive full message:state=", state);
           });
 
           socket.on("leaved", (roomID, userID) => {
             console.log("receive leaved message:", roomID, userID);
+            state = 'leaved';
+            jsConnectServer.disabled = false;
+            jsLeave.disabled = true;
+            socket.disconnect();
+            console.log("receive leaved message:state", state);
           });
 
           socket.on("bye", (roomID, userID) => {
             console.log("receive bye message:", roomID, userID);
+            state = 'join_unbind';
+            closePeerConnection();
+            closeLocalStream();
+            console.log("receive bye message:state", state);
           });
 
           socket.on("message", (roomID, userID) => {
@@ -139,6 +161,50 @@
           });
 
           socket.emit("join", roomId);
+        }
+
+        function createPeerConnection() {
+          console.log('create peerConnection!');
+          if (!pc) {
+            const options = {
+              iceServers: []
+            };
+            pc = new RTCPeerConnection(options);
+            
+            pc.onicecandidate = e => {
+              if (e.candidate) {
+                console.log('find a new candidate', e.candidate);
+              }
+            }
+
+            pc.ontrack = e => {
+              jsRemoteVideo.srcObject = e.streams[0];
+            }
+          }
+          
+          if (localStream) {
+            localStream.getTracks().forEach(track => {
+              pc.addTrack(track);
+            })
+          }
+
+        }
+
+        function closePeerConnection() {
+          console.log('close peerConnection!');
+          if (pc) {
+            pc.close();
+            pc = null;
+          }
+        }
+
+        function closeLocalStream() {
+          if (localStream) {
+            localStream.getTracks().forEach(track => {
+              track.stop();
+            })
+            localStream = null;
+          }
         }
 
         function handleCall() {
@@ -205,6 +271,8 @@
           if (socket) {
             socket.emit("leave", roomId);
           }
+          closePeerConnection();
+          closeLocalStream();
           jsConnectServer.disabled = false;
           jsLeave.disabled = true;
         }
