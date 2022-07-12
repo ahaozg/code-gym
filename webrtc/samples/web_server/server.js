@@ -2,7 +2,7 @@
  * @Author: haozg-666 106981170+haozg-666@users.noreply.github.com
  * @Date: 2022-06-08 21:20:57
  * @LastEditors: haozg-666 106981170+haozg-666@users.noreply.github.com
- * @LastEditTime: 2022-07-10 23:09:41
+ * @LastEditTime: 2022-07-12 22:37:26
  * @FilePath: /code-gym/webrtc/samples/web_server/server.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -98,7 +98,7 @@ io.sockets.on("connection", (socket) => {
   socket.on("message", (roomID, data) => {
     // 房间内所有人
     // io.in(roomID).emit("message", roomID, socket.id, data);
-    socket.to(roomID).emit("message", roomID, socket.id); 
+    socket.to(roomID).emit("message", roomID, data); 
   });
 });
 

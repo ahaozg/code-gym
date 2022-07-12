@@ -53,7 +53,7 @@
         const jsLocalVideo = document.querySelector("#jsLocalVideo");
         const jsRemoteVideo = document.querySelector("#jsRemoteVideo");
 
-        let localStream, socket, pc;
+        let localStream, socket, pc, inboundStream;
 
         const roomId = "123456";
 
@@ -114,7 +114,7 @@
 
           socket.on("joined", (roomID, userID) => {
             console.log("receive joined message:", roomID, userID);
-            state = 'joined';
+            state = "joined";
             createPeerConnection();
             jsConnectServer.disabled = true;
             jsLeave.disabled = false;
@@ -123,25 +123,26 @@
 
           socket.on("otherJoin", (roomID, userID) => {
             console.log("receive otherJoin message:", roomID, userID);
-            if (state === 'joined_unbind') {
+            if (state === "joined_unbind") {
               createPeerConnection();
             }
-            state = 'joined_conn';
+            state = "joined_conn";
+            call();
             console.log("receive otherJoin message:state=", state);
           });
 
           socket.on("full", (roomID, userID) => {
             console.log("receive full message:", roomID, userID);
-            state = 'leaved';
+            state = "leaved";
             jsConnectServer.disabled = false;
             jsLeave.disabled = true;
-            socket.disconnect();
+            closeLocalStream();
             console.log("receive full message:state=", state);
           });
 
           socket.on("leaved", (roomID, userID) => {
             console.log("receive leaved message:", roomID, userID);
-            state = 'leaved';
+            state = "leaved";
             jsConnectServer.disabled = false;
             jsLeave.disabled = true;
             socket.disconnect();
@@ -150,48 +151,142 @@
 
           socket.on("bye", (roomID, userID) => {
             console.log("receive bye message:", roomID, userID);
-            state = 'join_unbind';
+            state = "joined_unbind";
             closePeerConnection();
             closeLocalStream();
             console.log("receive bye message:state", state);
           });
 
-          socket.on("message", (roomID, userID) => {
-            console.log("receive client  message:", roomID, userID);
+          socket.on("message", (roomID, data) => {
+            console.log("receive client  message:", roomID, data);
+            if (!data) {
+              console.error("message is invalid!");
+              return;
+            }
+            const { type } = data;
+            switch (type) {
+              case "offer":
+                pc.setRemoteDescription(new RTCSessionDescription(data));
+                pc.createAnswer()
+                  .then(getAnswer)
+                  .catch((err) => console.error("fail create answer", err));
+                break;
+              case "answer":
+                pc.setRemoteDescription(new RTCSessionDescription(data));
+                break;
+              case "candidate":
+                const candidate = new RTCIceCandidate({
+                  sdpMLineIndex: data.sdpMLineIndex,
+                  candidate: data.candidate,
+                });
+                pc.addIceCandidate(candidate);
+                break;
+              default:
+                console.error("message is invalid!", data);
+                break;
+            }
           });
 
           socket.emit("join", roomId);
         }
 
+        function call() {
+          if (state === "joined_conn") {
+            const options = {
+              offerToReceiveAudio: 1,
+              offerToReceiveVideo: 1,
+            };
+            pc.createOffer(options)
+              .then(getOffer)
+              .catch((err) => console.error("fail create offer", err));
+          } else {
+            console.error("fail to call,because state = ", state);
+          }
+        }
+
+        function getOffer(desc) {
+          pc.setLocalDescription(desc);
+
+          // send desc to signals
+          sendMessage(roomId, desc);
+        }
+
+        function sendMessage(roomId, data) {
+          console.log("send message:roomID:", roomId, data);
+          if (socket) {
+            socket.emit("message", roomId, data);
+          }
+        }
+
+        function getAnswer(desc) {
+          pc.setLocalDescription(desc);
+
+          // send desc to signals
+          sendMessage(roomId, desc);
+        }
+
         function createPeerConnection() {
-          console.log('create peerConnection!');
+          console.log("create peerConnection!");
           if (!pc) {
             const options = {
-              iceServers: []
+              iceServers: [
+                // {
+                //   urls: ["turn:192.168.1.133:3478"],
+                //   username: "webrtc",
+                //   credential: "webrtc",
+                // }
+              ]
             };
             pc = new RTCPeerConnection(options);
-            
-            pc.onicecandidate = e => {
+            console.log('pc', pc)
+
+            pc.onicecandidate = (e) => {
               if (e.candidate) {
-                console.log('find a new candidate', e.candidate);
+                console.log("find a new candidate", e.candidate);
+                sendMessage(roomId, {
+                  type: "candidate",
+                  sdpMLineIndex: e.candidate.sdpMLineIndex,
+                  sdpMid: e.candidate.sdpMid,
+                  candidate: e.candidate.candidate,
+                });
               }
-            }
+            };
 
-            pc.ontrack = e => {
-              jsRemoteVideo.srcObject = e.streams[0];
-            }
+            pc.ontrack = (e) => {
+              console.log("on track", e);
+              if (e.streams && e.streams.length) {
+                jsRemoteVideo.srcObject = e.streams[0];
+              } else {
+                if (!inboundStream) {
+                  inboundStream = new MediaStream();
+                  jsRemoteVideo.srcObject = inboundStream;
+                }
+                inboundStream.addTrack(e.track);
+              }
+            };
+
+            pc.onicecandidateerror = e => {
+              console.error('onicecandidateerror', e);
+            };
+
+            pc.onconnectionstatechange = e => {
+              console.error('onconnectionstatechange', e);
+            };
+
+            pc.onnegotiationneeded = e => {
+              console.error('onnegotiationneeded', e);
+            };
           }
-          
+
           if (localStream) {
-            localStream.getTracks().forEach(track => {
-              pc.addTrack(track);
-            })
+            localStream.getTracks().forEach((track) => {
+              pc.addTrack(track, localStream);
+            });
           }
-
         }
 
         function closePeerConnection() {
-          console.log('close peerConnection!');
+          console.log("close peerConnection!");
           if (pc) {
             pc.close();
             pc = null;
@@ -200,71 +295,11 @@
 
         function closeLocalStream() {
           if (localStream) {
-            localStream.getTracks().forEach(track => {
+            localStream.getTracks().forEach((track) => {
               track.stop();
-            })
+            });
             localStream = null;
           }
-        }
-
-        function handleCall() {
-          pc1 = new RTCPeerConnection();
-          pc2 = new RTCPeerConnection();
-
-          pc1.onicecandidate = (e) => {
-            pc2.addIceCandidate(e.candidate);
-          };
-
-          pc2.ontrack = (e) => {
-            jsRemoteVideo.srcObject = e.streams[0];
-          };
-
-          localStream.getTracks().forEach((track) => {
-            pc1.addTrack(track, localStream);
-          });
-
-          const offerOptions = {
-            offerToReceiveAudio: 0,
-            offerToReceiveVideo: 1,
-          };
-
-          pc1
-            .createOffer(offerOptions)
-            .then(getOffer)
-            .catch((err) => {
-              console.error("fail to create offer", err);
-            });
-        }
-
-        function getOffer(desc) {
-          pc1.setLocalDescription(desc);
-
-          // send desc to signals
-          // receive desc from signal
-
-          pc2.setRemoteDescription(desc);
-          pc2
-            .createAnswer()
-            .then(getAnswer)
-            .catch((err) => {
-              console.error("fail to create answer", err);
-            });
-        }
-
-        function getAnswer(desc) {
-          pc2.setLocalDescription(desc);
-
-          // send desc to signals
-          // receive desc from signal
-
-          pc1.setRemoteDescription(desc);
-        }
-
-        function handleHangup() {
-          pc1.close();
-          pc2.close();
-          pc1 = null;
-          pc2 = null;
         }
 
         function handleLeave() {
