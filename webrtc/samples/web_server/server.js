@@ -2,7 +2,7 @@
  * @Author: haozg-666 106981170+haozg-666@users.noreply.github.com
  * @Date: 2022-06-08 21:20:57
  * @LastEditors: haozg-666 106981170+haozg-666@users.noreply.github.com
- * @LastEditTime: 2022-07-12 22:37:26
+ * @LastEditTime: 2022-07-13 22:43:13
  * @FilePath: /code-gym/webrtc/samples/web_server/server.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -19,7 +19,7 @@ var socketIO = require("socket.io");
 
 var log4js = require("log4js");
 
-var userCount = 3;
+var userCount = 2;
 
 log4js.configure({
   appenders: {
@@ -64,7 +64,7 @@ io.sockets.on("connection", (socket) => {
     var userLength = myRoom.size;
     logger.log(`此时roomID:${roomID}的房间内有${userLength}人`);
     if (userLength > userCount) {
-      socket.leave();
+      socket.leave(roomID);
       socket.emit("full", roomID, socket.id);
     } else {
       socket.emit("joined", roomID, socket.id);

@@ -136,7 +136,7 @@
             state = "leaved";
             jsConnectServer.disabled = false;
             jsLeave.disabled = true;
-            closeLocalStream();
+            alert('该房间已满！')
             console.log("receive full message:state=", state);
           });
 
@@ -153,7 +153,6 @@
             console.log("receive bye message:", roomID, userID);
             state = "joined_unbind";
             closePeerConnection();
-            closeLocalStream();
             console.log("receive bye message:state", state);
           });
 
@@ -269,13 +268,25 @@
               console.error('onicecandidateerror', e);
             };
 
+            pc.oniceconnectionstatechange = e => {
+              console.log('oniceconnectionstatechange', e, pc.iceConnectionState);
+            };
+
             pc.onconnectionstatechange = e => {
-              console.error('onconnectionstatechange', e);
+              console.log('onconnectionstatechange', e);
             };
 
             pc.onnegotiationneeded = e => {
-              console.error('onnegotiationneeded', e);
+              console.log('onnegotiationneeded', e);
             };
+
+            pc.onicegatheringstatechange = e => {
+              console.log('onicegatheringstatechange', e, pc.iceGatheringState);
+            };
+
+            pc.onconnectionstatechange = e => {
+              console.log('onconnectionstatechange', e, pc.connectionState);
+            };  
           }
 
           if (localStream) {
@@ -294,6 +305,7 @@
         }
 
         function closeLocalStream() {
+          console.log("close local stream");
           if (localStream) {
             localStream.getTracks().forEach((track) => {
               track.stop();
@@ -307,7 +319,6 @@
             socket.emit("leave", roomId);
           }
           closePeerConnection();
-          closeLocalStream();
           jsConnectServer.disabled = false;
           jsLeave.disabled = true;
         }
