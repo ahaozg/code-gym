@@ -392,6 +392,48 @@ WEBRTC传输层这块还实现了通过计算去估算你的网络带宽，不�
   + 端到端连接基本流程
     + ![image-20220630214726375](/Users/haozg/workSpace/study/notes/code-gym/webrtc/doc/img/image-20220630214726375.png)
 
+## RTP Media
+
++ getReceivers 
+  + 获取一组RTCRtpReceiver对象，用于接收数据
+    + track
+      + 返回mediastreamtrack与当前RTCRtpReceiver实例管理的
+    + transport
+      + 返回RTCDtlsTransport接收接收者轨道的媒体的实例
+    + getParameters
+      + 返回一个`RTCRtpParameters`对象，其中包含有关如何解码 RTC 数据的信息
+    + getSynchronizationSources
+      + 返回一个数组，其中包含当前在过去十秒内RTCRtpSynchronizationSource接收到的每个唯一 SSRC（同步源）标识符的一个实例
+    + getContributingSources
+      + 返回当前在过去十秒内RTCRtpContributingSource收到的每个唯一 CSRC（贡献源）标识符的实例数组
+    + getStats
+      + 返回一个Promise其实现处理程序接收一个RTCStatsReport包含有关传入流及其依赖项的统计信息
+    + getCapabilities
+      + 返回系统接收给定类型媒体功能的最乐观视图
++ getSenders
+  + 获取一组RTCRtpSender对象，用于发送数据，每个对象对应一个媒体轨
+    + track
+      + 返回mediastreamtrack与当前RTCRtpReceiver实例管理的
+    + transport
+      + 返回RTCDtlsTransport接收接收者轨道的媒体的实例
+    + getParameters
+      + 返回一个RTCRtpParameters对象，该对象描述 . 上媒体的编码和传输的当前配置`track`
+    + setParameters
+      + 将更改应用于配置如何`track`编码和传输到远程对等方的参数
+    + getStats
+      + 返回一个Promise由 a 实现的 a RTCStatsReport，它为使用 this 发送的所有出站流提供统计数据`RTCRtpSender`
+    + setStreams
+      + 设置与此发送者正在传输的MediaStream相关联的 (s) 
+    + replaceTrack
+      + 尝试`RTCRtpSender`用另一个轨道替换当前正在发送的轨道，而不执行重新协商。例如，此方法可用于在设备上的前置摄像头和后置摄像头之间切换
+    + getCapabilities
+      + 返回RTCRtpCapabilities描述系统发送指定类型媒体数据的能力的对象。
++ getTransceivers
+  + 从PC获得一组RTCRtpRTransceiver对象，每个RTCRtpRTransceiver是getSender和getReceiver对。
+  + stop()
+    + 停止接收和发送媒体数据
++ ![image-20220715224059605](/Users/haozg/workSpace/study/notes/code-gym/webrtc/doc/img/image-20220715224059605.png)
+
 ## SDP
 
 + SDP规范
