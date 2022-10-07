@@ -32,7 +32,10 @@ node_modules
 # virtualenv
 venv
 __pycache__
-#vscode 
+#vscode
 .vscode
+
+#idea
+.idea
 
 *.log
