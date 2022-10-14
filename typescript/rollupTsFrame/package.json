@@ -1,0 +1,36 @@
+{
+  "name": "rollup-ts-frame",
+  "version": "1.0.0",
+  "description": "rollup+ts build frame",
+  "author": "haozg<haozhenguang@thunisoft.com>",
+  "license": "MIT",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c --bundleConfigAsCjs",
+    "watch": "rollup -c --bundleConfigAsCjs -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.19.3",
+    "@babel/preset-env": "^7.19.4",
+    "@babel/preset-typescript": "^7.18.6",
+    "@rollup/plugin-babel": "^6.0.0",
+    "@rollup/plugin-commonjs": "^23.0.0",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^14.1.0",
+    "babel": "^6.23.0",
+    "babel-cli": "^6.26.0",
+    "consola": "^2.15.3",
+    "core-js": "^3.25.5",
+    "rollup": "^3.1.0",
+    "rollup-plugin-cleanup": "^3.2.1",
+    "rollup-plugin-clear": "^2.0.7",
+    "rollup-plugin-sizes": "^1.0.4",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.34.1",
+    "rollup-plugin-visualizer": "^5.8.2",
+    "tslib": "^2.4.0",
+    "typescript": "^4.8.4"
+  }
+}
